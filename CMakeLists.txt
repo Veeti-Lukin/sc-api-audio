@@ -12,10 +12,15 @@ message(STATUS "C compiler: ${CMAKE_C_COMPILER}  Version: ${CMAKE_C_COMPILER_VER
 #-----------------------------------------------------------------------------
 
 # ------------------------------ Structure setup ------------------------------
+add_subdirectory(libs)
 #------------------------------------------------------------------------------
 
 # ----------------------------- Application setup ----------------------------
 add_executable(Simucube-api-audio-player
         src/main.cpp
+)
+
+target_link_libraries(Simucube-api-audio-player PUBLIC
+        utils
 )
 #-----------------------------------------------------------------------------
