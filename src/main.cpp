@@ -5,15 +5,13 @@
 #include <mmdeviceapi.h>
 // clang-format on
 
-#include <atomic>
+#include <QApplication>
 #include <cassert>
 #include <cmath>
-#include <condition_variable>
 #include <cstdio>
-#include <mutex>
 #include <thread>
-#include <vector>
 
+#include "gui/MainWindow.h"
 #include "utils/ThreadSafeRingBuffer.h"
 
 // =====================================================
@@ -92,12 +90,21 @@ void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring) {
 // =====================================================
 // Main: read from ring buffer and display RMS
 // =====================================================
-int main() {
+int main(int argc, char* argv[]) {
     constexpr size_t RING_CAPACITY =
         48000 * 1;  // 1 sec of audio // TODO determine run time from captured device's format
     utils::ThreadSafeRingBuffer<float> ring(RING_CAPACITY);
 
     std::thread captureThread(audioCaptureThread, std::ref(ring));
+
+    QApplication app(argc, argv);
+    QCoreApplication::setApplicationName("ServoCore DevTool");
+    QApplication::setStyle("Fusion");
+
+    gui::MainWindow main_window(ring, 48000);
+    main_window.show();
+
+    return QApplication::exec();
 
     while (true) {
         float sample;
