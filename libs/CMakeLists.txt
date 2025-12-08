@@ -1,2 +1,3 @@
 add_subdirectory(utils)
 add_subdirectory(gui)
+add_subdirectory(crash_detection)

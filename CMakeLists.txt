@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.20.0)
 
 project(sc-api-audio LANGUAGES C CXX ASM)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_C_STANDARD 11)
 
@@ -23,5 +23,7 @@ add_executable(Simucube-api-audio-player
 target_link_libraries(Simucube-api-audio-player PUBLIC
         utils
         gui
+        crash_detection
 )
+
 #-----------------------------------------------------------------------------
