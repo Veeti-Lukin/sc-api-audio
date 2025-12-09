@@ -21,6 +21,15 @@ protected:
     void resizeGL(int w, int h) override;
 
 private:
+    struct {
+        GLclampf red;
+        GLclampf green;
+        GLclampf blue;
+        GLclampf alpha;
+    } background_color_;
+
+    GLuint VBO_id_;
+    GLuint shader_program_id_;
 };
 
 }  // namespace gui
