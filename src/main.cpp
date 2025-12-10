@@ -22,6 +22,9 @@ const IID IID_IAudioCaptureClient = __uuidof(IAudioCaptureClient);
 #include "gui/MainWindow.h"
 #include "utils/ThreadSafeRingBuffer.h"
 
+#include "audio_player/ApiAudioPlayer.h"
+#include "audio_player/Resampler.h"
+
 const CLSID CLSID_MMDeviceEnumerator = __uuidof(MMDeviceEnumerator);
 const IID IID_IMMDeviceEnumerator = __uuidof(IMMDeviceEnumerator);
 const IID IID_IAudioClient = __uuidof(IAudioClient);
@@ -62,6 +65,9 @@ void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring, std::atomic<bo
     hr = audioClient->Start();
     assert(SUCCEEDED(hr));
 
+    ApiAudioPlayer audio_player;
+    Resampler resampler_;
+
     printf("Audio capture started...\n");
 
     while (!stopFlag) {
@@ -85,6 +91,12 @@ void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring, std::atomic<bo
 
         // Push samples into ring buffer
         ring.push({samples, sampleCount});
+
+        // Audio player
+        std::vector<float> downsampled_samples = resampler_.resample({samples, sampleCount});
+        if (downsampled_samples.size() > 0) {
+            audio_player.stream({downsampled_samples.data(), downsampled_samples.size()}, resampler_.getSampleRate());
+        }
 
         hr = captureClient->ReleaseBuffer(numFrames);
         if (FAILED(hr)) break;
