@@ -5,12 +5,6 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets OpenGLWidgets)
-
-if (NOT Qt6_FOUND)
-    message(FATAL_ERROR "QT binaries not found")
-endif ()
-
 set(CMAKE_AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR}/src/ui")
 
 # Generate cpp header files from the shaders

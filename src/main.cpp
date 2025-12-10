@@ -22,10 +22,13 @@ const IID IID_IAudioCaptureClient = __uuidof(IAudioCaptureClient);
 #include "gui/MainWindow.h"
 #include "utils/ThreadSafeRingBuffer.h"
 
+#include "audio_player/ApiAudioPlayer.h"
+#include "audio_player/Resampler.h"
+
 // =====================================================
 // WASAPI loopback capture thread
 // =====================================================
-void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring) {
+void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring, std::atomic<bool>& stopFlag) {
     HRESULT              hr;
     IMMDeviceEnumerator* enumerator    = nullptr;
     IMMDevice*           renderDevice  = nullptr;
@@ -57,9 +60,12 @@ void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring) {
     hr = audioClient->Start();
     assert(SUCCEEDED(hr));
 
+    ApiAudioPlayer audio_player;
+    Resampler resampler_;
+
     printf("Audio capture started...\n");
 
-    while (true) {
+    while (!stopFlag) {
         UINT32 packetLength = 0;
         hr                  = captureClient->GetNextPacketSize(&packetLength);
         if (FAILED(hr)) break;
@@ -80,6 +86,12 @@ void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring) {
 
         // Push samples into ring buffer
         ring.push({samples, sampleCount});
+
+        // Audio player
+        std::vector<float> downsampled_samples = resampler_.resample({samples, sampleCount});
+        if (downsampled_samples.size() > 0) {
+            audio_player.stream({downsampled_samples.data(), downsampled_samples.size()}, resampler_.getSampleRate());
+        }
 
         hr = captureClient->ReleaseBuffer(numFrames);
         if (FAILED(hr)) break;
@@ -103,7 +115,9 @@ int main(int argc, char* argv[]) {
         48000 * 1;  // 1 sec of audio // TODO determine run time from captured device's format
     utils::ThreadSafeRingBuffer<float> ring(RING_CAPACITY);
 
-    std::thread captureThread(audioCaptureThread, std::ref(ring));
+    std::atomic<bool> stopCaptureThread = false;
+
+    std::thread captureThread(audioCaptureThread, std::ref(ring), std::ref(stopCaptureThread));
 
     QApplication app(argc, argv);
     QCoreApplication::setApplicationName("SC-API Audio");
@@ -112,14 +126,16 @@ int main(int argc, char* argv[]) {
     gui::MainWindow main_window(ring, 48000);
     main_window.show();
 
-    return QApplication::exec();
+    QApplication::exec();
 
-    while (true) {
+    /*while (true) {
         float sample;
         if (ring.pop(sample)) {
             std::printf("%f\n", sample);
         }
-    }
+    }*/
+    stopCaptureThread = true;
+
     captureThread.join();
     return 0;
 }

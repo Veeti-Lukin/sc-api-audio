@@ -1,2 +1,4 @@
 add_subdirectory(utils)
 add_subdirectory(gui)
+add_subdirectory(sc-api)
+add_subdirectory(audio_player)

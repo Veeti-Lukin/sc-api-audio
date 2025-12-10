@@ -9,6 +9,13 @@ set(CMAKE_C_STANDARD 11)
 
 message(STATUS "C++ compiler: ${CMAKE_CXX_COMPILER}  Version: ${CMAKE_CXX_COMPILER_VERSION}")
 message(STATUS "C compiler: ${CMAKE_C_COMPILER}  Version: ${CMAKE_C_COMPILER_VERSION}")
+
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets OpenGLWidgets)
+
+if (NOT Qt6_FOUND)
+    message(FATAL_ERROR "QT binaries not found")
+endif ()
+
 #-----------------------------------------------------------------------------
 
 # ------------------------------ Structure setup ------------------------------
@@ -20,8 +27,10 @@ add_executable(Simucube-api-audio-player
         src/main.cpp
 )
 
+
 target_link_libraries(Simucube-api-audio-player PUBLIC
         utils
         gui
+        audio_player
 )
 #-----------------------------------------------------------------------------
