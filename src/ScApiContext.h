@@ -9,9 +9,10 @@ public:
     ScApiContext(const sc_api::ApiUserInformation& api_user_info);
     ~ScApiContext() = default;
 
-    std::vector<OutputDevice> getConnectedDevices();
+    std::vector<OutputDevice*> getConnectedDevices();
 
-    void updateTimeStamp();
+    void syncTimeStamp();
+    void updateTimeStamp(size_t sample_count);
 
     sc_api::Clock::time_point getTimeStamp() const { return time_stamp_; }
     sc_api::Clock::duration   getSampleTime() const { return sample_time_; }
@@ -24,6 +25,8 @@ private:
 
     sc_api::Clock::time_point time_stamp_;
     sc_api::Clock::duration   sample_time_;
+
+    std::vector<OutputDevice*> devices_;
 };
 
 #endif  // SC_API_AUDIO_SCAPICONTEXT_H

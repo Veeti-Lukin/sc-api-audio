@@ -20,8 +20,8 @@ const IID   IID_IAudioCaptureClient  = __uuidof(IAudioCaptureClient);
 #include <thread>
 
 #include "ScApiContext.h"
-#include "audio_player/OutputDevice.h"
 #include "audio_player/AudioProcessor.h"
+#include "audio_player/OutputDevice.h"
 #include "audio_player/Resampler.h"
 #include "audio_player/Samples.h"
 #include "audio_player/StereoConverter.h"
@@ -64,7 +64,6 @@ void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring, std::atomic<bo
     hr = audioClient->Start();
     assert(SUCCEEDED(hr));
 
-    Resampler resampler_;
     Resampler       resampler;
     AudioProcessor  audio_processor;
     StereoConverter stereo_converter;
@@ -94,15 +93,34 @@ void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring, std::atomic<bo
         ring.push({samples, sampleCount});
 
         // Audio player
+        std::vector<OutputDevice*> devices = api_context.getConnectedDevices();
 
-        std::vector<OutputDevice> devices      = api_context.getConnectedDevices();
+        audio_processor.process({samples, sampleCount});
 
-        std::vector<float> downsampled_samples = resampler_.resample({samples, sampleCount});
-        api_context.updateTimeStamp();
-        if (downsampled_samples.size() > 0) {
-            for (const auto& device : devices) {
-                device.stream({downsampled_samples.data(), downsampled_samples.size()}, api_context.getTimeStamp(),
-                              api_context.getSampleTime());
+        std::vector<float> downsampled_samples = resampler.resample({samples, sampleCount});
+        stereo_converter.process(downsampled_samples);
+
+        std::vector<float> mono_samples = stereo_converter.mono();
+
+        if (!mono_samples.empty()) {
+            api_context.syncTimeStamp();
+
+            // Process data in chunks of maximum 256 samples
+            size_t remaining = mono_samples.size();
+            size_t offset    = 0;
+            while (remaining > 0) {
+                // Calculate the size of the current chunk (max 256)
+                size_t chunk_size = std::min(remaining, static_cast<size_t>(256));
+                // Stream the current chunk
+                for (const auto& device : devices) {
+                    device->stream({mono_samples.data() + offset, chunk_size}, api_context.getTimeStamp(),
+                                   api_context.getSampleTime());
+                }
+                api_context.updateTimeStamp(chunk_size);
+
+                // Update remaining samples and offset for the next chunk
+                remaining -= chunk_size;
+                offset += chunk_size;
             }
         }
 
@@ -141,7 +159,7 @@ int main(int argc, char* argv[]) {
 
     gui::MainWindow main_window(ring, 48000, {});
     for (const auto& device : api_context.getConnectedDevices()) {
-        main_window.addOutputDevice(std::string(device.getDeviceInfo()->getUid()));
+        main_window.addOutputDevice(std::string(device->getDeviceInfo()->getUid()));
     }
 
     std::thread captureThread(audioCaptureThread, std::ref(ring), std::ref(stopCaptureThread), std::ref(api_context));

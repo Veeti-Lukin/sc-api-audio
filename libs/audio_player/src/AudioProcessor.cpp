@@ -10,10 +10,13 @@ AudioProcessor::AudioProcessor() {
     for (auto& band : bands_) {
         band.filter.setup(samplingrate, band.frequency, band.q);
     }
+
+    low_pass_.setup(samplingrate, low_pass_cutoff_);
+    high_pass_.setup(samplingrate, high_pass_cutoff_);
 }
 
 void AudioProcessor::process(std::span<float> samples) {
-    // equalize(samples);
+    equalize(samples);
     applyGain(samples);
 }
 
@@ -32,13 +35,14 @@ void AudioProcessor::applyGain(std::span<float> samples) {
 
 void AudioProcessor::equalize(std::span<float> samples) {
     for (float& sample : samples) {
-        // Store the original sample
-        float originalSample  = sample;
+        sample                = low_pass_.filter(sample);
+        sample                = high_pass_.filter(sample);
+
         // Process through each band in parallel and sum the results
         float processedSample = 0.0f;
         for (auto& band : bands_) {
             // Apply the band-pass filter
-            float filteredSample = band.filter.filter(originalSample);
+            float filteredSample = band.filter.filter(sample);
 
             // Apply linear gain directly
             // Gain of 1.0 means no change, >1.0 is boost, <1.0 is cut
@@ -47,6 +51,6 @@ void AudioProcessor::equalize(std::span<float> samples) {
         }
 
         // Add the processed components to the original signal
-        sample = originalSample + processedSample;
+        sample += processedSample;
     }
 }
