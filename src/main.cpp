@@ -92,8 +92,9 @@ void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring, std::atomic<bo
         ring.push({samples, sampleCount});
 
         // Audio player
+        audio_processor.process({samples, sampleCount});
+
         std::vector<float> downsampled_samples = resampler.resample({samples, sampleCount});
-        audio_processor.process(downsampled_samples);
         stereo_converter.process(downsampled_samples);
 
         std::vector<float> mono_samples = stereo_converter.mono();

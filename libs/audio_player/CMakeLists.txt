@@ -28,4 +28,4 @@ add_library(audio_player
 
 target_include_directories(audio_player PUBLIC inc)
 
-target_link_libraries(audio_player PUBLIC sc-api r8brain)
+target_link_libraries(audio_player PUBLIC sc-api r8brain iir_static)

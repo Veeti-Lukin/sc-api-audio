@@ -1,3 +1,6 @@
 [submodule "libs/sc-api"]
 	path = libs/sc-api
 	url = https://github.com/Simucube/sc-api.git
+[submodule "libs/iir1"]
+	path = libs/iir1
+	url = https://github.com/berndporr/iir1.git
