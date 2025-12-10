@@ -17,14 +17,15 @@ class MainWindow final : public QMainWindow {
     Q_OBJECT
 
 public:
-    MainWindow(const utils::ThreadSafeRingBuffer<float>& capture_to_processing_buffer, size_t capture_sample_rate,
+    MainWindow(const utils::ThreadSafeRingBuffer<float>& original_audio_samples, size_t capture_sample_rate,
                QWidget* parent = nullptr);
     ~MainWindow() override;
 
+    void addOutputDevice(const std::string& device_name);
 private:
     Ui::MainWindow* ui;
 
-    const utils::ThreadSafeRingBuffer<float>& capture_to_processing_buffer_;
+    const utils::ThreadSafeRingBuffer<float>& original_audio_samples_;
     size_t                                    captrue_sample_rate_;
 };
 
