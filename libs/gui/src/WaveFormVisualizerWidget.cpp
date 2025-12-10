@@ -128,7 +128,10 @@ void WaveFormVisualizerWidget::fetchSamples() {
         auto popped = ringBuffer_->pop(std::span<float>(temp, 512));
         if (popped.empty()) break;
 
+        int i = 0;
         for (float v : popped) {
+            i++;
+            if (i % 2 == 0) continue;
             slidingBuffer_.push_back(v);
             if (slidingBuffer_.size() > maxSamples_) slidingBuffer_.erase(slidingBuffer_.begin());
         }
