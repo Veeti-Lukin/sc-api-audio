@@ -17,7 +17,7 @@ class MainWindow final : public QMainWindow {
     Q_OBJECT
 
 public:
-    MainWindow(const utils::ThreadSafeRingBuffer<float>& capture_to_processing_buffer, size_t capture_sample_rate,
+    MainWindow(utils::ThreadSafeRingBuffer<float>& capture_to_processing_buffer, size_t capture_sample_rate,
                QWidget* parent = nullptr);
     ~MainWindow() override;
 
