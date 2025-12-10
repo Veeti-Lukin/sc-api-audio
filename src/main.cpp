@@ -5,6 +5,14 @@
 #include <mmdeviceapi.h>
 // clang-format on
 
+// Manual GUID definitions for MSVC for some reason these work automatically on MINGW but not on MSVC
+#ifdef _MSC_VER
+const CLSID CLSID_MMDeviceEnumerator = __uuidof(MMDeviceEnumerator);
+const IID IID_IMMDeviceEnumerator = __uuidof(IMMDeviceEnumerator);
+const IID IID_IAudioClient = __uuidof(IAudioClient);
+const IID IID_IAudioCaptureClient = __uuidof(IAudioCaptureClient);
+#endif
+
 #include <QApplication>
 #include <cassert>
 #include <cmath>
@@ -98,7 +106,7 @@ int main(int argc, char* argv[]) {
     std::thread captureThread(audioCaptureThread, std::ref(ring));
 
     QApplication app(argc, argv);
-    QCoreApplication::setApplicationName("ServoCore DevTool");
+    QCoreApplication::setApplicationName("SC-API Audio");
     QApplication::setStyle("Fusion");
 
     gui::MainWindow main_window(ring, 48000);
