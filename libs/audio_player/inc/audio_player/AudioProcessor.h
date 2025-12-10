@@ -25,9 +25,15 @@ private:
         Iir::RBJ::BandPass2 filter;
     };
 
-    const float samplingrate = 48000;  // Hz
-
     EQBand bands_[3];
+
+    float low_pass_cutoff_  = 20000;
+    float high_pass_cutoff_ = 20;
+
+    Iir::Butterworth::LowPass<4>  low_pass_;
+    Iir::Butterworth::HighPass<4> high_pass_;
+
+    const float samplingrate = 48000;  // Hz
 };
 
 #endif  // AUDIO_PLAYER_AUDIO_PROCESSOR_H
