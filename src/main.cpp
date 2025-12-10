@@ -22,10 +22,15 @@ const IID IID_IAudioCaptureClient = __uuidof(IAudioCaptureClient);
 #include "gui/MainWindow.h"
 #include "utils/ThreadSafeRingBuffer.h"
 
+const CLSID CLSID_MMDeviceEnumerator = __uuidof(MMDeviceEnumerator);
+const IID IID_IMMDeviceEnumerator = __uuidof(IMMDeviceEnumerator);
+const IID IID_IAudioClient = __uuidof(IAudioClient);
+const IID IID_IAudioCaptureClient = __uuidof(IAudioCaptureClient);
+
 // =====================================================
 // WASAPI loopback capture thread
 // =====================================================
-void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring) {
+void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring, std::atomic<bool>& stopFlag) {
     HRESULT              hr;
     IMMDeviceEnumerator* enumerator    = nullptr;
     IMMDevice*           renderDevice  = nullptr;
@@ -59,7 +64,7 @@ void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring) {
 
     printf("Audio capture started...\n");
 
-    while (true) {
+    while (!stopFlag) {
         UINT32 packetLength = 0;
         hr                  = captureClient->GetNextPacketSize(&packetLength);
         if (FAILED(hr)) break;
@@ -103,7 +108,9 @@ int main(int argc, char* argv[]) {
         48000 * 1;  // 1 sec of audio // TODO determine run time from captured device's format
     utils::ThreadSafeRingBuffer<float> ring(RING_CAPACITY);
 
-    std::thread captureThread(audioCaptureThread, std::ref(ring));
+    std::atomic<bool> stopCaptureThread = false;
+
+    std::thread captureThread(audioCaptureThread, std::ref(ring), std::ref(stopCaptureThread));
 
     QApplication app(argc, argv);
     QCoreApplication::setApplicationName("SC-API Audio");
@@ -112,14 +119,16 @@ int main(int argc, char* argv[]) {
     gui::MainWindow main_window(ring, 48000);
     main_window.show();
 
-    return QApplication::exec();
+    QApplication::exec();
 
-    while (true) {
+    /*while (true) {
         float sample;
         if (ring.pop(sample)) {
             std::printf("%f\n", sample);
         }
-    }
+    }*/
+    stopCaptureThread = true;
+
     captureThread.join();
     return 0;
 }

@@ -1,0 +1,3 @@
+[submodule "libs/sc-api"]
+	path = libs/sc-api
+	url = https://github.com/Simucube/sc-api.git

@@ -20,6 +20,7 @@ add_executable(Simucube-api-audio-player
         src/main.cpp
 )
 
+
 target_link_libraries(Simucube-api-audio-player PUBLIC
         utils
         gui

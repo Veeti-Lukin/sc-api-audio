@@ -42,3 +42,5 @@
 
 #Clion ide files
 .idea/*
+
+*build*
