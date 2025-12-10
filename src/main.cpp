@@ -25,11 +25,6 @@ const IID IID_IAudioCaptureClient = __uuidof(IAudioCaptureClient);
 #include "audio_player/ApiAudioPlayer.h"
 #include "audio_player/Resampler.h"
 
-const CLSID CLSID_MMDeviceEnumerator = __uuidof(MMDeviceEnumerator);
-const IID IID_IMMDeviceEnumerator = __uuidof(IMMDeviceEnumerator);
-const IID IID_IAudioClient = __uuidof(IAudioClient);
-const IID IID_IAudioCaptureClient = __uuidof(IAudioCaptureClient);
-
 // =====================================================
 // WASAPI loopback capture thread
 // =====================================================
