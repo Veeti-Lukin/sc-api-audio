@@ -12,14 +12,13 @@ public:
     OutputDevice(sc_api::core::device_info::DeviceInfoPtr device_info,
                  std::unique_ptr<sc_api::FfbPipeline>     pipeline_handle);
 
-    void stream(std::span<float> samples, sc_api::Clock::time_point time_stamp,
-                sc_api::Clock::duration sample_time) const;
+    void stream(std::span<float> samples, sc_api::Clock::time_point time_stamp, sc_api::Clock::duration sample_time);
 
     sc_api::core::device_info::DeviceInfoPtr getDeviceInfo() const { return device_info_; }
 
 private:
-    sc_api::core::device_info::DeviceInfoPtr   device_info_;
-    std::unique_ptr<sc_api::core::FfbPipeline> pipeline_handle_;
+    sc_api::core::device_info::DeviceInfoPtr device_info_;
+    std::shared_ptr<sc_api::FfbPipeline>     pipeline_handle_;
 };
 
 #endif  // APIAUDIOPLAYER_H

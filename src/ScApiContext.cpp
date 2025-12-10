@@ -13,6 +13,7 @@ ScApiContext::ScApiContext(const sc_api::ApiUserInformation& api_user_info)
                            sc_api::Session::ControlFlag::control_telemetry,
                        api_user_info.display_name, api_user_info) {
     api_event_queue_ = api_.createEventQueue();
+    time_stamp_      = sc_api::core::Clock::now();
 
     auto start_time  = std::chrono::system_clock::now();
     auto timeout     = start_time + std::chrono::minutes(1);
@@ -37,12 +38,20 @@ ScApiContext::ScApiContext(const sc_api::ApiUserInformation& api_user_info)
     }
 }
 
-std::vector<OutputDevice> ScApiContext::getConnectedDevices() {
-    std::vector<OutputDevice> devices;
-
+std::vector<OutputDevice*> ScApiContext::getConnectedDevices() {
     sc_api::core::device_info::FullInfoPtr full_device_info = session_->getDeviceInfo();
 
     for (const sc_api::device_info::DeviceInfo& device_info : *full_device_info) {
+        bool new_device = true;
+        for (auto dev : devices_) {
+            if (dev->getDeviceInfo()->getUid() == device_info.getUid()) {
+                new_device = false;
+                break;
+            }
+        }
+
+        if (!new_device) continue;
+
         auto createPipeline = [&](sc_api::OffsetType pipeline_offset_type) {
             std::unique_ptr<sc_api::FfbPipeline> pipeline;
             sc_api::PipelineConfig               config;
@@ -54,20 +63,26 @@ std::vector<OutputDevice> ScApiContext::getConnectedDevices() {
 
         // TODO music pipeline type here
 
-        if (device_info.hasFeedbackType(sc_api::device_info::FeedbackType::active_pedal))
-            devices.emplace_back(device_info.shared_from_this(),
-                                 std::move(createPipeline(sc_api::OffsetType::force_N)));
-        else if (device_info.hasFeedbackType(sc_api::device_info::FeedbackType::wheelbase))
-            devices.emplace_back(device_info.shared_from_this(),
-                                 std::move(createPipeline(sc_api::OffsetType::torque_Nm)));
+        if (device_info.hasFeedbackType(sc_api::device_info::FeedbackType::active_pedal)) {
+            auto* device = new OutputDevice(device_info.shared_from_this(),
+                                            std::move(createPipeline(sc_api::OffsetType::force_N)));
+            devices_.push_back(device);
+        } else if (device_info.hasFeedbackType(sc_api::device_info::FeedbackType::wheelbase)) {
+            auto* device = new OutputDevice(device_info.shared_from_this(),
+                                            std::move(createPipeline(sc_api::OffsetType::torque_Nm)));
+            devices_.push_back(device);
+        }
     }
-    return devices;
+
+    return devices_;
 }
 
-void ScApiContext::updateTimeStamp() {
+void ScApiContext::syncTimeStamp() {
     if (sc_api::core::Clock::now() > time_stamp_ + std::chrono::microseconds(100000)) {
         time_stamp_ = sc_api::core::Clock::now() + std::chrono::microseconds(10000);
     }
+
+    sample_time_ = std::chrono::microseconds(1000000) / 20000;  // TODO samplerate
 
     if (time_stamp_ < sc_api::core::Clock::now() + std::chrono::microseconds(10000)) {
         sample_time_ += std::chrono::microseconds(20);
@@ -75,3 +90,5 @@ void ScApiContext::updateTimeStamp() {
         sample_time_ -= std::chrono::microseconds(20);
     }
 }
+
+void ScApiContext::updateTimeStamp(size_t sample_count) { time_stamp_ += sample_time_ * sample_count; }
