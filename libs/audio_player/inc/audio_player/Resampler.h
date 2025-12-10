@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "CDSPResampler.h"
+#include "Samples.h"
 
 class Resampler {
 public:
@@ -17,7 +18,7 @@ public:
 private:
     const int k_input_sample_rate  = 48000;
     const int k_output_sample_rate = 20000;
-    const int k_input_buffer_size  = 500;
+    const int k_input_buffer_size  = 1000;
 
     r8b::CDSPResampler24 resampler_ =
         r8b::CDSPResampler24(k_input_sample_rate, k_output_sample_rate, k_input_buffer_size);

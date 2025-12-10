@@ -8,9 +8,9 @@
 // Manual GUID definitions for MSVC for some reason these work automatically on MINGW but not on MSVC
 #ifdef _MSC_VER
 const CLSID CLSID_MMDeviceEnumerator = __uuidof(MMDeviceEnumerator);
-const IID IID_IMMDeviceEnumerator = __uuidof(IMMDeviceEnumerator);
-const IID IID_IAudioClient = __uuidof(IAudioClient);
-const IID IID_IAudioCaptureClient = __uuidof(IAudioCaptureClient);
+const IID   IID_IMMDeviceEnumerator  = __uuidof(IMMDeviceEnumerator);
+const IID   IID_IAudioClient         = __uuidof(IAudioClient);
+const IID   IID_IAudioCaptureClient  = __uuidof(IAudioCaptureClient);
 #endif
 
 #include <QApplication>
@@ -19,11 +19,13 @@ const IID IID_IAudioCaptureClient = __uuidof(IAudioCaptureClient);
 #include <cstdio>
 #include <thread>
 
+#include "audio_player/ApiAudioPlayer.h"
+#include "audio_player/AudioProcessor.h"
+#include "audio_player/Resampler.h"
+#include "audio_player/Samples.h"
+#include "audio_player/StereoConverter.h"
 #include "gui/MainWindow.h"
 #include "utils/ThreadSafeRingBuffer.h"
-
-#include "audio_player/ApiAudioPlayer.h"
-#include "audio_player/Resampler.h"
 
 // =====================================================
 // WASAPI loopback capture thread
@@ -60,8 +62,10 @@ void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring, std::atomic<bo
     hr = audioClient->Start();
     assert(SUCCEEDED(hr));
 
-    ApiAudioPlayer audio_player;
-    Resampler resampler_;
+    ApiAudioPlayer  audio_player;
+    Resampler       resampler;
+    AudioProcessor  audio_processor;
+    StereoConverter stereo_converter;
 
     printf("Audio capture started...\n");
 
@@ -88,9 +92,14 @@ void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring, std::atomic<bo
         ring.push({samples, sampleCount});
 
         // Audio player
-        std::vector<float> downsampled_samples = resampler_.resample({samples, sampleCount});
-        if (downsampled_samples.size() > 0) {
-            audio_player.stream({downsampled_samples.data(), downsampled_samples.size()}, resampler_.getSampleRate());
+        std::vector<float> downsampled_samples = resampler.resample({samples, sampleCount});
+        audio_processor.process(downsampled_samples);
+        stereo_converter.process(downsampled_samples);
+
+        std::vector<float> mono_samples = stereo_converter.mono();
+
+        if (!mono_samples.empty()) {
+            audio_player.stream({mono_samples.data(), mono_samples.size()}, resampler.getSampleRate());
         }
 
         hr = captureClient->ReleaseBuffer(numFrames);
