@@ -25,6 +25,9 @@ add_subdirectory(libs)
 # ----------------------------- Application setup ----------------------------
 add_executable(Simucube-api-audio-player
         src/main.cpp
+
+        src/ScApiContext.h
+        src/ScApiContext.cpp
 )
 
 

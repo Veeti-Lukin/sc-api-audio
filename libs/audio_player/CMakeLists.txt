@@ -20,7 +20,7 @@ add_library(r8brain STATIC
 target_include_directories(r8brain PUBLIC ${r8brain_SOURCE_DIR})
 
 add_library(audio_player
-        src/ApiAudioPlayer.cpp
+        src/OutputDevice.cpp
         src/Resampler.cpp
         src/AudioProcessor.cpp
         src/StereoConverter.cpp

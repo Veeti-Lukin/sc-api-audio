@@ -19,7 +19,8 @@ const IID   IID_IAudioCaptureClient  = __uuidof(IAudioCaptureClient);
 #include <cstdio>
 #include <thread>
 
-#include "audio_player/ApiAudioPlayer.h"
+#include "ScApiContext.h"
+#include "audio_player/OutputDevice.h"
 #include "audio_player/AudioProcessor.h"
 #include "audio_player/Resampler.h"
 #include "audio_player/Samples.h"
@@ -30,7 +31,8 @@ const IID   IID_IAudioCaptureClient  = __uuidof(IAudioCaptureClient);
 // =====================================================
 // WASAPI loopback capture thread
 // =====================================================
-void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring, std::atomic<bool>& stopFlag) {
+void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring, std::atomic<bool>& stopFlag,
+                        ScApiContext& api_context) {
     HRESULT              hr;
     IMMDeviceEnumerator* enumerator    = nullptr;
     IMMDevice*           renderDevice  = nullptr;
@@ -62,7 +64,7 @@ void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring, std::atomic<bo
     hr = audioClient->Start();
     assert(SUCCEEDED(hr));
 
-    ApiAudioPlayer  audio_player;
+    Resampler resampler_;
     Resampler       resampler;
     AudioProcessor  audio_processor;
     StereoConverter stereo_converter;
@@ -92,15 +94,16 @@ void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring, std::atomic<bo
         ring.push({samples, sampleCount});
 
         // Audio player
-        audio_processor.process({samples, sampleCount});
 
-        std::vector<float> downsampled_samples = resampler.resample({samples, sampleCount});
-        stereo_converter.process(downsampled_samples);
+        std::vector<OutputDevice> devices      = api_context.getConnectedDevices();
 
-        std::vector<float> mono_samples = stereo_converter.mono();
-
-        if (!mono_samples.empty()) {
-            audio_player.stream({mono_samples.data(), mono_samples.size()}, resampler.getSampleRate());
+        std::vector<float> downsampled_samples = resampler_.resample({samples, sampleCount});
+        api_context.updateTimeStamp();
+        if (downsampled_samples.size() > 0) {
+            for (const auto& device : devices) {
+                device.stream({downsampled_samples.data(), downsampled_samples.size()}, api_context.getTimeStamp(),
+                              api_context.getSampleTime());
+            }
         }
 
         hr = captureClient->ReleaseBuffer(numFrames);
@@ -121,21 +124,29 @@ void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring, std::atomic<bo
 // Main: read from ring buffer and display RMS
 // =====================================================
 int main(int argc, char* argv[]) {
+    ScApiContext api_context({.display_name   = "sc-api-audio??",
+                              .type           = "Audio player",
+                              .author         = "Simucube Hackers",
+                              .version_string = "1.0"});
+
     constexpr size_t RING_CAPACITY =
         48000 * 1;  // 1 sec of audio // TODO determine run time from captured device's format
     utils::ThreadSafeRingBuffer<float> ring(RING_CAPACITY);
 
     std::atomic<bool> stopCaptureThread = false;
 
-    std::thread captureThread(audioCaptureThread, std::ref(ring), std::ref(stopCaptureThread));
-
     QApplication app(argc, argv);
     QCoreApplication::setApplicationName("SC-API Audio");
     QApplication::setStyle("Fusion");
 
-    gui::MainWindow main_window(ring, 48000);
-    main_window.show();
+    gui::MainWindow main_window(ring, 48000, {});
+    for (const auto& device : api_context.getConnectedDevices()) {
+        main_window.addOutputDevice(std::string(device.getDeviceInfo()->getUid()));
+    }
 
+    std::thread captureThread(audioCaptureThread, std::ref(ring), std::ref(stopCaptureThread), std::ref(api_context));
+
+    main_window.show();
     QApplication::exec();
 
     /*while (true) {
