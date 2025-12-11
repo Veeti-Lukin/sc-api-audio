@@ -21,8 +21,9 @@ public:
                QWidget* parent = nullptr);
     ~MainWindow() override;
 
-    void addOutputDevice(const std::string& device_name);
 private:
+    void updateDeviceList();
+
     Ui::MainWindow* ui;
 
     const utils::ThreadSafeRingBuffer<float>& original_audio_samples_;

@@ -6,7 +6,7 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLWidget>
 
-namespace gui {
+namespace audio_control_gui {
 
 class WaveFormVisualizerWidget : public QOpenGLWidget, protected QOpenGLFunctions {
     Q_OBJECT
@@ -32,6 +32,6 @@ private:
     GLuint shader_program_id_;
 };
 
-}  // namespace gui
+}  // namespace audio_control_gui
 
 #endif  // SC_API_AUDIO_WAVEFORMVISUALIZERWIDGET_H

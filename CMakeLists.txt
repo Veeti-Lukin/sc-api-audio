@@ -23,21 +23,40 @@ add_subdirectory(libs)
 #------------------------------------------------------------------------------
 
 # ----------------------------- Application setup ----------------------------
+
+# Does some automation for the qt projects
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+
+set(CMAKE_AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/ui")
+
 add_executable(Simucube-api-audio-player
         src/main.cpp
 
         inc/ScApiContext.h
         src/ScApiContext.cpp
-        inc/AudioCapturer.h
+  		inc/AudioCapturer.h
         src/AudioCapturer.cpp
+ 		# ====== GUI ======
+        inc/gui/MainWindow.h
+        src/gui/MainWindow.cpp
+        src/gui/ui/MainWindow.ui
+
+        inc/gui/OutputDeviceControlWindow.h
+        src/gui/OutputDeviceControlWindow.cpp
+        src/gui/ui/OutputDeviceControlWindow.ui
 )
 
 target_include_directories(Simucube-api-audio-player PUBLIC inc)
 
 
 target_link_libraries(Simucube-api-audio-player PUBLIC
+        Qt6::Core
+        Qt6::Widgets
+
         utils
-        gui
         audio_player
+        audio_control_gui
 )
 #-----------------------------------------------------------------------------

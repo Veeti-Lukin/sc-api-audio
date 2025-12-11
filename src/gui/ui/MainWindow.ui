@@ -16,14 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="WaveFormVisualizerWidget" name="waveFormVizualiserWidget" native="true">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-     </widget>
+     <widget class="audio_control_gui::AudioControlWidget" name="audioControlWidget" native="true"/>
     </item>
     <item>
      <widget class="QScrollArea" name="deviceListWidgetScrollArea">
@@ -48,7 +41,7 @@
          <x>0</x>
          <y>0</y>
          <width>560</width>
-         <height>201</height>
+         <height>221</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -84,9 +77,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>WaveFormVisualizerWidget</class>
+   <class>audio_control_gui::AudioControlWidget</class>
    <extends>QWidget</extends>
-   <header>WaveFormVisualizerWidget.h</header>
+   <header>auido_control_gui/AudioControlWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
