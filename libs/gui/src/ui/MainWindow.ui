@@ -16,6 +16,9 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
+     <widget class="EqCurveWidget" name="widget" native="true"/>
+    </item>
+    <item>
      <widget class="WaveFormVisualizerWidget" name="waveFormVizualiserWidget" native="true"/>
     </item>
    </layout>
@@ -37,6 +40,12 @@
    <class>WaveFormVisualizerWidget</class>
    <extends>QWidget</extends>
    <header>WaveFormVisualizerWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>EqCurveWidget</class>
+   <extends>QWidget</extends>
+   <header>EqCurveWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

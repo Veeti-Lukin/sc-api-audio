@@ -26,6 +26,9 @@ add_library(gui STATIC
         src/WaveFormVisualizerWidget.cpp
         ${VERTEX_SHADER_HEADER}
         ${FRAGMENT_SHADER_HEADER}
+
+        src/EqCurveWidget.h
+        src/EqCurveWidget.cpp
 )
 
 target_link_libraries(gui PUBLIC

@@ -45,7 +45,7 @@ void WaveFormVisualizerWidget::init(utils::ThreadSafeRingBuffer<float>* ringBuff
 
     QTimer* timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, QOverload<>::of(&QWidget::update));
-    timer->start(16);
+    timer->start(10);  // 100 fps
 }
 
 void WaveFormVisualizerWidget::setAmplitudeScale(float amp) { amplitudeScale_ = amp; }
