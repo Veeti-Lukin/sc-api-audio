@@ -94,37 +94,22 @@ void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring, std::atomic<bo
         // Audio player
         std::vector<std::shared_ptr<OutputDevice>> devices = ScApiContext::getInstance()->getConnectedDevices();
 
-        audio_processor.process({samples, sampleCount});
+        // audio_processor.process({samples, sampleCount});
 
-        std::vector<float> downsampled_samples = resampler.resample({samples, sampleCount});
-        stereo_converter.process(downsampled_samples);
-
-        std::vector<float> mono_samples = stereo_converter.mono();
-
-        if (!mono_samples.empty()) {
+        if (sampleCount > 0) {
             // No other threads use the timestamp
             ScApiContext::getInstanceUnsafe().syncTimeStamp();
 
-            // Process data in chunks of maximum 256 samples
-            size_t remaining = mono_samples.size();
-            size_t offset    = 0;
-            while (remaining > 0) {
-                // Calculate the size of the current chunk (max 256)
-                size_t chunk_size = std::min(remaining, static_cast<size_t>(256));
-                // Stream the current chunk
-                for (const auto& device : devices) {
-                    device->stream({mono_samples.data() + offset, chunk_size},
-                                   ScApiContext::getInstanceUnsafe().getTimeStamp(),
-                                   ScApiContext::getInstanceUnsafe().getSampleTime());
-                }
-                ScApiContext::getInstanceUnsafe().updateTimeStamp(chunk_size);
-
-                // Update remaining samples and offset for the next chunk
-                remaining -= chunk_size;
-                offset += chunk_size;
+            for (const auto& device : devices) {
+                device->stream(std::vector<float>(samples, samples + sampleCount), api_context.getTimeStamp(),
+                               api_context.getSampleTime());
             }
-        }
 
+            std::vector<float> downsampled_samples = resampler.resample({samples, sampleCount});
+            stereo_converter.process(downsampled_samples);
+            std::vector<float> left_samples = stereo_converter.left();
+            api_context.updateTimeStamp(left_samples.size());
+        }
         hr = captureClient->ReleaseBuffer(numFrames);
         if (FAILED(hr)) break;
     }
