@@ -26,9 +26,11 @@ add_subdirectory(libs)
 add_executable(Simucube-api-audio-player
         src/main.cpp
 
-        src/ScApiContext.h
+        inc/ScApiContext.h
         src/ScApiContext.cpp
 )
+
+target_include_directories(Simucube-api-audio-player PUBLIC inc)
 
 
 target_link_libraries(Simucube-api-audio-player PUBLIC
