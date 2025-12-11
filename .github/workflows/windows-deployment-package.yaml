@@ -11,7 +11,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          submodules: recursive  # Init submodules
+          submodules: recursive
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
@@ -20,7 +20,6 @@ jobs:
           host: 'windows'
           target: 'desktop'
           arch: 'win64_msvc2022_64'
-          # modules: '' # Add extra qt modules here if needed
           cache: true
 
       - name: Setup MSVC
@@ -37,15 +36,18 @@ jobs:
       - name: Build
         run: cmake --build build --config Release --parallel
 
-      - name: Copy Qt DLLs
+      - name: Create deployment directory
         run: |
-          windeployqt build/Simucube-api-audio-player.exe --release --no-translations
+          mkdir deploy
+          cp build/Simucube-api-audio-player.exe deploy/
+
+      - name: Deploy Qt dependencies
+        run: |
+          windeployqt deploy/Simucube-api-audio-player.exe --release --no-translations
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: Simucube-api-audio-player-Windows
-          path: |
-            build/Simucube-api-audio-player.exe
-            build/*.dll
-          retention-days: 90 # Cant be longer than 90 days
+          path: deploy/
+          retention-days: 90
