@@ -18,6 +18,7 @@ MainWindow::MainWindow(const utils::ThreadSafeRingBuffer<float>& original_audio_
       original_audio_samples_(original_audio_samples),
       captrue_sample_rate_(capture_sample_rate) {
     ui->setupUi(this);
+    setWindowTitle(QApplication::applicationName());
 
     QObject::connect(ui->deviceListWidget, &QListWidget::itemClicked, this, [parent = this](QListWidgetItem* item) {
         // Get the device data stored in the item
