@@ -28,6 +28,8 @@ add_executable(Simucube-api-audio-player
 
         inc/ScApiContext.h
         src/ScApiContext.cpp
+        inc/AudioCapturer.h
+        src/AudioCapturer.cpp
 )
 
 target_include_directories(Simucube-api-audio-player PUBLIC inc)
