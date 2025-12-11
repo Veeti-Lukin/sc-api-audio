@@ -1,5 +1,5 @@
 add_subdirectory(utils)
-add_subdirectory(gui)
+add_subdirectory(audio_control_gui)
 add_subdirectory(sc-api)
 add_subdirectory(audio_player)
 add_subdirectory(iir1)

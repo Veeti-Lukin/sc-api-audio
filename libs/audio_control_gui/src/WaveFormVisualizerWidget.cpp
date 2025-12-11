@@ -9,7 +9,7 @@
 #include "WaveFormVisualizerWidget_fragment_shader.h"
 #include "WaveFormVisualizerWidget_vertex_shader.h"
 
-namespace gui {
+namespace audio_control_gui {
 
 WaveFormVisualizerWidget::WaveFormVisualizerWidget(QWidget* parent) : QOpenGLWidget(parent) {
     QStyle*  fusion_style   = QStyleFactory::create("Fusion");
@@ -142,4 +142,4 @@ void WaveFormVisualizerWidget::resizeGL(int w, int h) {
     glLoadIdentity();*/
 }
 
-}  // namespace gui
+}  // namespace audio_control_gui

@@ -14,7 +14,6 @@
 #include "AudioCapturer.h"
 #include "ScApiContext.h"
 #include "audio_player/AudioProcessor.h"
-#include "audio_player/OutputDevice.h"
 #include "audio_player/Resampler.h"
 #include "audio_player/Samples.h"
 #include "audio_player/StereoConverter.h"
@@ -85,10 +84,7 @@ int main(int argc, char* argv[]) {
     QCoreApplication::setApplicationName("SC-API Audio");
     QApplication::setStyle("Fusion");
 
-    gui::MainWindow main_window(ring, 48000, {});
-    for (const auto& device : ScApiContext::getInstance()->getConnectedDevices()) {
-        main_window.addOutputDevice(std::string(device->getDeviceInfo()->getUid()));
-    }
+    gui::MainWindow main_window(ring, 48000);
 
     std::thread captureThread(audioCaptureThread, std::ref(ring), std::ref(stopCaptureThread));
 
