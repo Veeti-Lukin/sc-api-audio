@@ -12,10 +12,17 @@
 
 class AudioCapturer {
 public:
+    struct Format {
+        size_t sample_rate;
+        size_t channels;
+    };
+
     AudioCapturer();
     ~AudioCapturer();
 
     std::span<float> tryGetSamples();
+
+    Format getFormat();
 
 private:
     void releaseSamples();

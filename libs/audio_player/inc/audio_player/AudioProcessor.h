@@ -9,7 +9,7 @@
 
 class AudioProcessor {
 public:
-    AudioProcessor();
+    AudioProcessor(size_t sample_rate);
 
     void process(std::span<float> samples);
 
@@ -44,7 +44,7 @@ private:
     Iir::Butterworth::LowPass<4>  low_pass_;
     Iir::Butterworth::HighPass<4> high_pass_;
 
-    const float samplingrate = 48000;  // Hz
+    const float sample_rate_ = 48000;
 
     std::mutex mutex_;
 };

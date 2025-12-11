@@ -4,17 +4,17 @@
 
 #include "iir.h"
 
-AudioProcessor::AudioProcessor() {
+AudioProcessor::AudioProcessor(size_t sample_rate) : sample_rate_(sample_rate) {
     bands_[0] = {60.0f, 1.0f, 0.707f};    // Low band
     bands_[1] = {250.0f, 1.0f, 0.707f};   // Mid band
     bands_[2] = {8000.0f, 1.0f, 0.707f};  // High band
 
     for (auto& band : bands_) {
-        band.filter.setup(samplingrate, band.frequency, band.q);
+        band.filter.setup(sample_rate_, band.frequency, band.q);
     }
 
-    low_pass_.setup(samplingrate, low_pass_cutoff_);
-    high_pass_.setup(samplingrate, high_pass_cutoff_);
+    low_pass_.setup(sample_rate_, low_pass_cutoff_);
+    high_pass_.setup(sample_rate_, high_pass_cutoff_);
 }
 
 void AudioProcessor::process(std::span<float> samples) {
@@ -85,7 +85,7 @@ void AudioProcessor::setEqBand(int band, float frequency, float gain, float q) {
     bands_[band].gain      = gain;
     bands_[band].q         = q;
 
-    bands_[band].filter.setup(samplingrate, bands_[band].frequency, bands_[band].q);
+    bands_[band].filter.setup(sample_rate_, bands_[band].frequency, bands_[band].q);
 
     mutex_.unlock();
 }
@@ -95,7 +95,7 @@ void AudioProcessor::setEqLowPassCutoff(float cutoff) {
 
     mutex_.lock();
     low_pass_cutoff_ = cutoff;
-    low_pass_.setup(samplingrate, low_pass_cutoff_);
+    low_pass_.setup(sample_rate_, low_pass_cutoff_);
 
     mutex_.unlock();
 }
@@ -106,7 +106,7 @@ void AudioProcessor::setEqHighPassCutoff(float cutoff) {
     mutex_.lock();
 
     high_pass_cutoff_ = cutoff;
-    high_pass_.setup(samplingrate, high_pass_cutoff_);
+    high_pass_.setup(sample_rate_, high_pass_cutoff_);
 
     mutex_.unlock();
 }

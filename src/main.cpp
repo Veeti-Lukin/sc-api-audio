@@ -19,9 +19,7 @@
 // WASAPI loopback capture thread
 // =====================================================
 void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring, std::atomic<bool>& stopFlag,
-                        AudioProcessor& master_audio_processor) {
-    AudioCapturer audio_capturer;
-
+                        AudioProcessor& master_audio_processor, AudioCapturer& audio_capturer) {
     Resampler       resampler;
     StereoConverter stereo_converter;
 
@@ -108,19 +106,19 @@ int main(int argc, char* argv[]) {
 
     connectToTuner();
 
-    constexpr size_t RING_CAPACITY =
-        48000 * 1;  // 1 sec of audio // TODO determine run time from captured device's format
-    utils::ThreadSafeRingBuffer<float> ring(RING_CAPACITY);
+    AudioCapturer audio_capturer;
+
+    utils::ThreadSafeRingBuffer<float> ring(audio_capturer.getFormat().sample_rate * 1);
 
     std::atomic<bool> stopCaptureThread = false;
 
-    AudioProcessor master_audio_processor;
+    AudioProcessor master_audio_processor(audio_capturer.getFormat().sample_rate);
     master_audio_processor.setEqEnabled(false);
 
     gui::MainWindow main_window(ring, 48000, master_audio_processor);
 
     std::thread captureThread(audioCaptureThread, std::ref(ring), std::ref(stopCaptureThread),
-                              std::ref(master_audio_processor));
+                              std::ref(master_audio_processor), std::ref(audio_capturer));
 
     main_window.show();
     QApplication::exec();

@@ -65,6 +65,10 @@ std::span<float> AudioCapturer::tryGetSamples() {
     return {samples_, sampleCount};
 }
 
+AudioCapturer::Format AudioCapturer::getFormat() {
+    return {.sample_rate = format->nSamplesPerSec, .channels = format->nChannels};
+}
+
 void AudioCapturer::releaseSamples() {
     HRESULT hr;
     hr = captureClient->ReleaseBuffer(numFrames);
