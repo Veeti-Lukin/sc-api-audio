@@ -58,8 +58,7 @@ void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring, std::atomic<bo
         }
 
         std::vector<float> downsampled_samples = resampler.resample(samples);
-        stereo_converter.process(downsampled_samples);
-        std::vector<float> left_samples = stereo_converter.left();
+        std::vector<float> left_samples        = stereo_converter.pan(downsampled_samples, 0);
         ScApiContext::getInstanceUnsafe().updateTimeStamp(left_samples.size());
     }
 

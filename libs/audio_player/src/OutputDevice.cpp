@@ -11,12 +11,11 @@ void OutputDevice::stream(std::vector<float> samples, sc_api::Clock::time_point 
     audio_processor.process(samples);
 
     std::vector<float> downsampled_samples = resampler.resample(samples);
-    stereo_converter.process(downsampled_samples);
 
-    std::vector<float> mono_samples = stereo_converter.mono();
+    std::vector<float> mono_samples        = stereo_converter.pan(downsampled_samples, 0.5f);
 
-    size_t remaining                = mono_samples.size();
-    size_t offset                   = 0;
+    size_t remaining                       = mono_samples.size();
+    size_t offset                          = 0;
     while (remaining > 0) {
         // Calculate the size of the current chunk (max 256)
         size_t chunk_size = (std::min)(remaining, static_cast<size_t>(256));
