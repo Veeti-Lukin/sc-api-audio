@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 
+#include "audio_control_gui/mEqWidget.h"
 #include "audio_player/OutputDevice.h"
 
 namespace gui {
@@ -23,6 +24,7 @@ private:
     Ui::OutputDeviceControlWindow* ui;
 
     std::shared_ptr<OutputDevice> output_device_;
+    mEqWidget*                    mEqWidget_;
 };
 
 }  // namespace gui

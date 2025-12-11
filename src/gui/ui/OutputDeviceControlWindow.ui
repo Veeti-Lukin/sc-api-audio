@@ -14,7 +14,7 @@
    <string>OutputDeviceControlWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,1,1">
     <item>
      <widget class="QLabel" name="label">
       <property name="sizePolicy">
@@ -46,6 +46,17 @@
     </item>
     <item>
      <widget class="audio_control_gui::AudioControlWidget" name="audioControlWidget" native="true"/>
+    </item>
+    <item>
+     <widget class="QFrame" name="eqFrame">
+      <property name="frameShape">
+       <enum>QFrame::Shape::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Shadow::Raised</enum>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_2"/>
+     </widget>
     </item>
    </layout>
   </widget>

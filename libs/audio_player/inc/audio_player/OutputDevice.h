@@ -17,6 +17,9 @@ public:
 
     sc_api::core::device_info::DeviceInfoPtr getDeviceInfo() const { return device_info_; }
 
+    AudioProcessor* getAudioProcessor() { return &audio_processor; }
+    void            setPan(float pan);
+
 private:
     sc_api::core::device_info::DeviceInfoPtr device_info_;
     std::shared_ptr<sc_api::FfbPipeline>     pipeline_handle_;
@@ -24,6 +27,10 @@ private:
     Resampler       resampler;
     AudioProcessor  audio_processor;
     StereoConverter stereo_converter;
+
+    std::mutex mutex_;
+
+    float pan_ = 0.5f;
 };
 
 #endif  // APIAUDIOPLAYER_H

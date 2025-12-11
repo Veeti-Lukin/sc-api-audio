@@ -20,6 +20,13 @@ add_library(audio_control_gui STATIC
         ${VERTEX_SHADER_HEADER}
         ${FRAGMENT_SHADER_HEADER}
 
+        src/mEqBandWidget.cpp
+        inc/audio_control_gui/mEqBandWidget.h
+        src/ui/mEqBandWidget.ui
+        src/mEqWidget.cpp
+        inc/audio_control_gui/mEqWidget.h
+        src/ui/mEqWidget.ui
+
 )
 
 target_link_libraries(audio_control_gui PUBLIC
@@ -30,6 +37,7 @@ target_link_libraries(audio_control_gui PUBLIC
         #audio_player # For OutputDevice
 
         utils
+        audio_player
 )
 
 target_include_directories(audio_control_gui
