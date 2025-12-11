@@ -1,0 +1,51 @@
+name: Windows Deployment Package
+
+on:
+  workflow_dispatch:  # Only manual trigger
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive  # Init submodules
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.9.3'
+          host: 'windows'
+          target: 'desktop'
+          arch: 'win64_msvc2022_64'
+          # modules: '' # Add extra qt modules here if needed
+          cache: true
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Configure CMake
+        run: |
+          cmake -B build -G "Ninja" `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_PREFIX_PATH="${env:Qt6_DIR}"
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Copy Qt DLLs
+        run: |
+          windeployqt build/Simucube-api-audio-player.exe --release --no-translations
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Simucube-api-audio-player-Windows
+          path: |
+            build/Simucube-api-audio-player.exe
+            build/*.dll
+          retention-days: 90 # Cant be longer than 90 days
