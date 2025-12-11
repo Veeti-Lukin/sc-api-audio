@@ -4,20 +4,14 @@
 #include <span>
 #include <vector>
 
-#include "Samples.h"
-
 class StereoConverter {
 public:
-    void process(std::span<float> samples);
+    std::vector<float> left(std::span<float> samples);
+    std::vector<float> right(std::span<float> samples);
+    std::vector<float> mono(std::span<float> samples);
 
-    std::vector<float> left() { return samples_.left; }
-    std::vector<float> right() { return samples_.right; }
-    std::vector<float> mono() { return samples_.mono; }
-
-    //std::vector<float> pan(float pan);
-
-private:
-    Samples samples_;
+    // pan: 0 = full left, 1.0 full right
+    std::vector<float> pan(std::span<float> samples, float pan);
 };
 
 #endif  // AUDIO_PLAYER_STEREO_CONVERTER_H
