@@ -1,14 +1,9 @@
-// clang-format off
-#include <Windows.h>
-#include <initguid.h>
-#include <Audioclient.h>
-#include <mmdeviceapi.h>
-// clang-format on
-
 #include <QApplication>
-#include <cassert>
+#include <QMessageBox>
+#include <QProgressDialog>
 #include <cmath>
 #include <cstdio>
+#include <future>
 #include <thread>
 
 #include "AudioCapturer.h"
@@ -64,25 +59,59 @@ void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring, std::atomic<bo
     printf("Audio capture stopped.\n");
 }
 
-// =====================================================
-// Main: read from ring buffer and display RMS
-// =====================================================
+void connectToTuner() {
+    // Create progress dialog with cancel button
+    QProgressDialog progress("Connecting to Tuner...", "Cancel", 0, 0, nullptr);
+    progress.setWindowTitle("Connecting");
+    progress.setWindowModality(Qt::ApplicationModal);
+    // Do not show progress dialog if it takes less than this time to connect to tuner
+    progress.setMinimumDuration(1000);
+    progress.show();
+    QApplication::processEvents();
+
+    std::future<bool> init_future = std::async(std::launch::async, []() {
+        // You could check userCancelled periodically in initApiSession if needed
+        return ScApiContext::initApiSession({.display_name   = "sc-api-audio",
+                                             .type           = "Audio player",
+                                             .author         = "Simucube Hackers",
+                                             .version_string = "1.0"},
+                                            std::chrono::seconds(60));
+    });
+    // Wait for completion while keeping UI responsive
+    while (init_future.wait_for(std::chrono::milliseconds(50)) == std::future_status::timeout) {
+        QApplication::processEvents();
+
+        // Track if user cancelled waiting for connecting to tuner
+        // Yes this is not "safe exit" because thread is left running
+        if (progress.wasCanceled()) {
+            std::exit(1);
+        }
+    }
+    bool success = init_future.get();
+    progress.close();
+
+    if (!success) {
+        // Show error dialog with OK button
+        QMessageBox::critical(nullptr, "Connection Error",
+                              "Failed to connect to Tuner.\n\nPlease make sure Simucube Tuner is running.",
+                              QMessageBox::Ok);
+        // WIll be called after user presses ok
+        std::exit(1);
+    }
+}
+
 int main(int argc, char* argv[]) {
-    bool init_success = ScApiContext::initApiSession({.display_name   = "sc-api-audio??",
-                                                      .type           = "Audio player",
-                                                      .author         = "Simucube Hackers",
-                                                      .version_string = "1.0"},
-                                                     std::chrono::seconds(60));
+    QCoreApplication::setApplicationName("SC-API Audio");
+    QApplication::setStyle("Fusion");
+    QApplication app(argc, argv);
+
+    connectToTuner();
 
     constexpr size_t RING_CAPACITY =
         48000 * 1;  // 1 sec of audio // TODO determine run time from captured device's format
     utils::ThreadSafeRingBuffer<float> ring(RING_CAPACITY);
 
     std::atomic<bool> stopCaptureThread = false;
-
-    QApplication app(argc, argv);
-    QCoreApplication::setApplicationName("SC-API Audio");
-    QApplication::setStyle("Fusion");
 
     gui::MainWindow main_window(ring, 48000);
 
