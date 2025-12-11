@@ -1,5 +1,7 @@
 #include "audio_player/AudioProcessor.h"
 
+#include <iostream>
+
 #include "iir.h"
 
 AudioProcessor::AudioProcessor() {
@@ -16,24 +18,37 @@ AudioProcessor::AudioProcessor() {
 }
 
 void AudioProcessor::process(std::span<float> samples) {
+    mutex_.lock();
     equalize(samples);
     applyGain(samples);
+    mutex_.unlock();
+}
+
+void AudioProcessor::setGain(float gain) {
+    mutex_.lock();
+    gain_ = gain;
+    mutex_.unlock();
 }
 
 void AudioProcessor::applyGain(std::span<float> samples) {
     for (float& sample : samples) {
         sample *= gain_;
 
-        // Limit to gain
-        if (sample > gain_) {
-            sample = gain_;
-        } else if (sample < -gain_) {
-            sample = -gain_;
+        // Limit to gain x2
+        if (sample > 15.0f) {
+            sample = 15.0f;
+            std::cout << "Limiting gain" << std::endl;
+        } else if (sample < -15.0f) {
+            sample = -15.0f;
+            std::cout << "Limiting gain" << std::endl;
         }
     }
 }
 
 void AudioProcessor::equalize(std::span<float> samples) {
+    if (!eq_enabled_) return;
+
+    // Only usable with single channel audio samples!
     for (float& sample : samples) {
         sample                = low_pass_.filter(sample);
         sample                = high_pass_.filter(sample);
@@ -53,4 +68,45 @@ void AudioProcessor::equalize(std::span<float> samples) {
         // Add the processed components to the original signal
         sample += processedSample;
     }
+}
+
+void AudioProcessor::setEqEnabled(bool enabled) {
+    mutex_.lock();
+    eq_enabled_ = enabled;
+    mutex_.unlock();
+}
+
+void AudioProcessor::setEqBand(int band, float frequency, float gain, float q) {
+    if (band < 0 || band >= 3) return;
+    if (frequency < 20.0f || frequency > 20000.0f) return;
+
+    mutex_.lock();
+    bands_[band].frequency = frequency;
+    bands_[band].gain      = gain;
+    bands_[band].q         = q;
+
+    bands_[band].filter.setup(samplingrate, bands_[band].frequency, bands_[band].q);
+
+    mutex_.unlock();
+}
+
+void AudioProcessor::setEqLowPassCutoff(float cutoff) {
+    if (cutoff < 20.0f || cutoff > 20000.0f) return;
+
+    mutex_.lock();
+    low_pass_cutoff_ = cutoff;
+    low_pass_.setup(samplingrate, low_pass_cutoff_);
+
+    mutex_.unlock();
+}
+
+void AudioProcessor::setEqHighPassCutoff(float cutoff) {
+    if (cutoff < 20.0f || cutoff > 20000.0f) return;
+
+    mutex_.lock();
+
+    high_pass_cutoff_ = cutoff;
+    high_pass_.setup(samplingrate, high_pass_cutoff_);
+
+    mutex_.unlock();
 }

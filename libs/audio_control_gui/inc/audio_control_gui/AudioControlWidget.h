@@ -4,6 +4,8 @@
 
 #include <QWidget>
 
+#include "audio_player/AudioProcessor.h"
+
 namespace audio_control_gui {
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -18,8 +20,12 @@ public:
     explicit AudioControlWidget(QWidget* parent = nullptr);
     ~AudioControlWidget() override;
 
+    void setAudioProcessor(AudioProcessor* audio_processor);
+
 private:
     Ui::AudioControlWidget* ui;
+
+    AudioProcessor* audio_processor_ = nullptr;
 };
 }  // namespace audio_control_gui
 

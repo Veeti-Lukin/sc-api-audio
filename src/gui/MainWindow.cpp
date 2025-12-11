@@ -12,13 +12,16 @@
 namespace gui {
 
 MainWindow::MainWindow(const utils::ThreadSafeRingBuffer<float>& original_audio_samples, size_t capture_sample_rate,
-                       QWidget* parent)
+                       AudioProcessor& master_audio_processor, QWidget* parent)
     : QMainWindow(parent),
       ui(new Ui::MainWindow),
       original_audio_samples_(original_audio_samples),
-      captrue_sample_rate_(capture_sample_rate) {
+      captrue_sample_rate_(capture_sample_rate),
+      master_audio_processor_(master_audio_processor) {
     ui->setupUi(this);
     setWindowTitle(QApplication::applicationName());
+
+    ui->audioControlWidget->setAudioProcessor(&master_audio_processor_);
 
     QObject::connect(ui->deviceListWidget, &QListWidget::itemClicked, this, [parent = this](QListWidgetItem* item) {
         // Get the device data stored in the item

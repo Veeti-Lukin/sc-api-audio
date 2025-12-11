@@ -18,11 +18,11 @@
 // =====================================================
 // WASAPI loopback capture thread
 // =====================================================
-void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring, std::atomic<bool>& stopFlag) {
+void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring, std::atomic<bool>& stopFlag,
+                        AudioProcessor& master_audio_processor) {
     AudioCapturer audio_capturer;
 
     Resampler       resampler;
-    AudioProcessor  audio_processor;
     StereoConverter stereo_converter;
 
     printf("Audio capture started...\n");
@@ -40,7 +40,7 @@ void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring, std::atomic<bo
         // Audio player
         std::vector<std::shared_ptr<OutputDevice>> devices = ScApiContext::getInstance()->getConnectedDevices();
 
-        // audio_processor.process({samples, sampleCount});
+        master_audio_processor.process(samples);
 
         // No other threads use the timestamp
         ScApiContext::getInstanceUnsafe().syncTimeStamp();
@@ -51,9 +51,10 @@ void audioCaptureThread(utils::ThreadSafeRingBuffer<float>& ring, std::atomic<bo
                            ScApiContext::getInstanceUnsafe().getSampleTime());
         }
 
-        std::vector<float> downsampled_samples = resampler.resample(samples);
-        std::vector<float> left_samples        = stereo_converter.pan(downsampled_samples, 0);
-        ScApiContext::getInstanceUnsafe().updateTimeStamp(left_samples.size());
+        std::vector<float> left_samples        = stereo_converter.pan(samples, 0);
+        std::vector<float> downsampled_samples = resampler.resample(left_samples);
+
+        ScApiContext::getInstanceUnsafe().updateTimeStamp(downsampled_samples.size());
     }
 
     printf("Audio capture stopped.\n");
@@ -113,9 +114,13 @@ int main(int argc, char* argv[]) {
 
     std::atomic<bool> stopCaptureThread = false;
 
-    gui::MainWindow main_window(ring, 48000);
+    AudioProcessor master_audio_processor;
+    master_audio_processor.setEqEnabled(false);
 
-    std::thread captureThread(audioCaptureThread, std::ref(ring), std::ref(stopCaptureThread));
+    gui::MainWindow main_window(ring, 48000, master_audio_processor);
+
+    std::thread captureThread(audioCaptureThread, std::ref(ring), std::ref(stopCaptureThread),
+                              std::ref(master_audio_processor));
 
     main_window.show();
     QApplication::exec();

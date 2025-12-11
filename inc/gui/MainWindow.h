@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 
+#include "audio_control_gui/AudioControlWidget.h"
+#include "audio_player/AudioProcessor.h"
 #include "utils/ThreadSafeRingBuffer.h"
 
 namespace gui {
@@ -18,7 +20,7 @@ class MainWindow final : public QMainWindow {
 
 public:
     MainWindow(const utils::ThreadSafeRingBuffer<float>& original_audio_samples, size_t capture_sample_rate,
-               QWidget* parent = nullptr);
+               AudioProcessor& master_audio_processor, QWidget* parent = nullptr);
     ~MainWindow() override;
 
 private:
@@ -28,6 +30,8 @@ private:
 
     const utils::ThreadSafeRingBuffer<float>& original_audio_samples_;
     size_t                                    captrue_sample_rate_;
+
+    AudioProcessor& master_audio_processor_;
 };
 
 }  // namespace gui

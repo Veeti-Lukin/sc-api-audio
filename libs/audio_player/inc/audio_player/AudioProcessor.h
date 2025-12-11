@@ -1,6 +1,7 @@
 #ifndef AUDIO_PLAYER_AUDIO_PROCESSOR_H
 #define AUDIO_PLAYER_AUDIO_PROCESSOR_H
 
+#include <mutex>
 #include <span>
 
 #include "Samples.h"
@@ -12,11 +13,21 @@ public:
 
     void process(std::span<float> samples);
 
+    void setGain(float gain);
+
+    void setEqEnabled(bool enabled);
+
+    void setEqBand(int band, float frequency, float gain, float q);
+    void setEqLowPassCutoff(float cutoff);
+    void setEqHighPassCutoff(float cutoff);
+
 private:
     void applyGain(std::span<float> samples);
     void equalize(std::span<float> samples);
 
-    float gain_ = 5.0f;
+    float gain_      = 2.0f;
+
+    bool eq_enabled_ = true;
 
     struct EQBand {
         float               frequency;
@@ -34,6 +45,8 @@ private:
     Iir::Butterworth::HighPass<4> high_pass_;
 
     const float samplingrate = 48000;  // Hz
+
+    std::mutex mutex_;
 };
 
 #endif  // AUDIO_PLAYER_AUDIO_PROCESSOR_H
