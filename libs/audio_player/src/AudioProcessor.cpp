@@ -34,12 +34,12 @@ void AudioProcessor::applyGain(std::span<float> samples) {
     for (float& sample : samples) {
         sample *= gain_;
 
-        // Limit to gain x2
-        if (sample > 15.0f) {
-            sample = 15.0f;
+        // Limit to gain
+        if (sample > 100.0f) {
+            sample = 100.0f;
             std::cout << "Limiting gain" << std::endl;
-        } else if (sample < -15.0f) {
-            sample = -15.0f;
+        } else if (sample < -100.0f) {
+            sample = -100.0f;
             std::cout << "Limiting gain" << std::endl;
         }
     }

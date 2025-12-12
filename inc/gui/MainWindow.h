@@ -5,6 +5,7 @@
 
 #include "audio_control_gui/AudioControlWidget.h"
 #include "audio_player/AudioProcessor.h"
+#include "gui/OutputDeviceControlWindow.h"
 #include "utils/ThreadSafeRingBuffer.h"
 
 namespace gui {
@@ -32,6 +33,8 @@ private:
     size_t                                    captrue_sample_rate_;
 
     AudioProcessor& master_audio_processor_;
+
+    std::map<std::string_view, OutputDeviceControlWindow*> device_windows_;
 };
 
 }  // namespace gui
