@@ -14,10 +14,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
-    <item>
-     <widget class="audio_control_gui::AudioControlWidget" name="audioControlWidget" native="true"/>
-    </item>
+   <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
      <widget class="QScrollArea" name="deviceListWidgetScrollArea">
       <property name="sizePolicy">
@@ -40,8 +37,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>560</width>
-         <height>221</height>
+         <width>544</width>
+         <height>450</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -60,6 +57,9 @@
        </layout>
       </widget>
      </widget>
+    </item>
+    <item>
+     <widget class="audio_control_gui::AudioControlWidget" name="audioControlWidget" native="true"/>
     </item>
    </layout>
   </widget>

@@ -1,7 +1,6 @@
 #include "gui/MainWindow.h"
 
 #include <ScApiContext.h>
-#include <gui/OutputDeviceControlWindow.h>
 
 #include <QListWidgetItem>
 #include <QTimer>
@@ -23,13 +22,23 @@ MainWindow::MainWindow(const utils::ThreadSafeRingBuffer<float>& original_audio_
 
     ui->audioControlWidget->setAudioProcessor(&master_audio_processor_);
 
-    QObject::connect(ui->deviceListWidget, &QListWidget::itemClicked, this, [parent = this](QListWidgetItem* item) {
-        // Get the device data stored in the item
-        auto device                       = item->data(Qt::UserRole).value<std::shared_ptr<OutputDevice>>();
+    QObject::connect(ui->deviceListWidget, &QListWidget::itemClicked, this,
+                     [this, parent = this](QListWidgetItem* item) {
+                         // Get the device data stored in the item
+                         auto device = item->data(Qt::UserRole).value<std::shared_ptr<OutputDevice>>();
 
-        OutputDeviceControlWindow* window = new OutputDeviceControlWindow(device, parent);
-        window->show();
-    });
+                         auto                       uid = device->getDeviceInfo()->getUid();
+                         auto                       it  = device_windows_.find(uid);
+                         OutputDeviceControlWindow* window;
+                         if (it != device_windows_.end()) {
+                             window = it->second;
+                         } else {
+                             window = new OutputDeviceControlWindow(device, parent);
+                             device_windows_[device->getDeviceInfo()->getUid()] = window;
+                         }
+
+                         window->show();
+                     });
 
     updateDeviceList();
     QTimer* device_update_timer = new QTimer(this);
