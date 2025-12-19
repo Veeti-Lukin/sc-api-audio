@@ -5,7 +5,7 @@ include(FetchContent)
 FetchContent_Declare(
         r8brain
         GIT_REPOSITORY https://github.com/avaneev/r8brain-free-src.git  # URL of the repository
-        GIT_TAG master                                                  # Use the master branch or specific tag
+        GIT_TAG b3f0753  # Use old commit, never versions would require some refactorung
 )
 
 # Fetch the dependency
